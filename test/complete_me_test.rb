@@ -76,8 +76,8 @@ class CompleteMeTest < Minitest::Test
     cm.select("pi", "pizza")
     cm.select("pi", "pizzicato")
 
-    assert_equal "pizzeria", cm.suggest("piz")[0]
-    assert_equal ["pizza", "pizzicato"], cm.suggest("pi")[0..1]
+    assert_equal ["pizzeria", "pize"], cm.suggest("piz")[0..1]
+    assert_equal ["pizza", "pizzicato", "pi"], cm.suggest("pi")[0..2]
   end
 
   def test_no_word_with_substring

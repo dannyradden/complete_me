@@ -10,7 +10,7 @@ class CompleteMe
     @@suggestions = []
   end
 
-  def insert(word, node = @@root_node) #hey
+  def insert(word, node = @@root_node)
     if word.length != 0
       first_letter = word[0]
       remainder = word[1..-1]
@@ -44,7 +44,9 @@ class CompleteMe
 
   def suggest(subscript, node = @@root_node, apply_sub = true)
     @@sugg_subscript = subscript if apply_sub == true
+    @@weighted_suggestions = []
     @@suggestions = []
+
     if subscript.length != 0
       first_letter = subscript[0]
       remainder = subscript[1..-1]
@@ -54,20 +56,33 @@ class CompleteMe
         node.children[first_letter].suggest(remainder, node.children[first_letter], false)
       end
     else
-      @@suggestions << node.weight[@@sugg_subscript].to_s + node.node_word if node.terminate == true
-      add_words_to_sugg
-
-      @@suggestions.sort_by! do |element|
-         element.delete("^0-9","^-").to_i
+      if node.terminate == true
+        if node.weight[@@sugg_subscript] != nil
+          @@weighted_suggestions << node.weight[@@sugg_subscript].to_s + node.node_word
+        else
+          @@suggestions << node.node_word
+        end
       end
-      @@suggestions.map! { |element| element.delete("^a-z")}
+      add_words_to_sugg
+      #binding.pry
+      @@suggestions.sort!
+      @@weighted_suggestions.sort_by! do |element|
+        element.delete("^0-9","^-").to_i
+        #element
+      end
+      @@weighted_suggestions.map! { |element| element.delete("^a-z")}
+      @@weighted_suggestions += @@suggestions
     end
   end
 
   def add_words_to_sugg
     children.each_value do |value|
       if value.terminate == true && value != nil
-        @@suggestions << value.weight[@@sugg_subscript].to_s + value.node_word
+        if value.weight[@@sugg_subscript] != nil
+          @@weighted_suggestions << value.weight[@@sugg_subscript].to_s + value.node_word
+        else
+          @@suggestions << value.node_word
+        end
       end
       value.add_words_to_sugg
     end
@@ -80,7 +95,6 @@ class CompleteMe
       compile_string += '.children["' + letter + '"]'
     end
     evaluate_string = compile_string + '.weight["' + substring + '"]'
-    #binding.pry
     if eval(evaluate_string) == nil
       eval(evaluate_string + "= -1")
     else
@@ -102,29 +116,34 @@ class Node < CompleteMe
   end
 end
 
-File.read('/usr/share/dict/words'
-
 # cm = CompleteMe.new
-# #cm.insert_words(["pizza", "pizzeria", "pizzicato", "pizzle", "pize"])
-# #cm.insert_words ['heck', 'hello', 'h', 'had', 'happy', 'happen', 'happe']
-# cm.populate(File.read("./lib/medium.txt"))
-# #cm.populate(File.read('/usr/share/dict/words'))
-# # puts cm.select("doggerel", "doggerelist")
-# # puts ""
-# # puts cm.suggest('doggerel')
-#
-# # cm.select("piz", "pizzeria")
-# # cm.select("piz", "pizzeria")
-# # cm.select("piz", "pizzeria")
+# cm.insert_words(["pizza", "pizzeria", "pizzicato", "pizzle", "pize"])
+# cm.insert_words ['heck', 'hello', 'h', 'had', 'happy', 'happen', 'happe']
+#cm.populate(File.read("./lib/medium.txt"))
+# cm.populate(File.read('/usr/share/dict/words'))
+# puts cm.select("doggerel", "doggerelist")
+# puts ""
+# puts cm.suggest('doggerel')
+
+# cm.select("piz", "pizzeria")
+# cm.select("piz", "pizzeria")
+# cm.select("piz", "pizzeria")
+# cm.select("pi", "pizza")
+# cm.select("pi", "pizza")
+# cm.select("pi", "pizzicato")
 # #
-# # cm.select("pi", "pizza")
-# # cm.select("pi", "pizza")
-# # cm.select("pi", "pizzicato")
-# #
-# # puts cm.suggest("piz")[0]
-# # puts ""
-# # puts cm.suggest("pi")
-# puts cm.suggest('xyz')
-#
-# # puts "\n"
-# # puts "Words in dictionary:#{cm.count}"
+# puts cm.suggest("piz")
+# puts ""
+# puts cm.suggest("pi")
+# cm.select('an', "antiemetic")
+# cm.select('an', "anomalous")
+# cm.select('an', "anorectal")
+# cm.select('an', "antiemetic")
+
+#puts cm.suggest('ba')
+
+#binding.pry
+# puts ""
+
+# puts "\n"
+# puts "Words in dictionary:#{cm.count}"
