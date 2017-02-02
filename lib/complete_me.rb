@@ -2,7 +2,7 @@ require 'pry'
 class CompleteMe
 
   attr_reader :root_node, :counter
-  
+
   def initialize
     @root_node = Node.new('')
     @counter = 0
@@ -12,7 +12,6 @@ class CompleteMe
     if word.length != 0
       first_letter = word[0]
       remainder = word[1..-1]
-
       if node.children[first_letter] == nil
         node.children[first_letter] = Node.new(node.node_word + first_letter)
       end
@@ -52,7 +51,6 @@ class CompleteMe
       else
         node.children[first_letter].suggest(remainder, node.children[first_letter], false)
       end
-
     else
       add_words_to_sugg
       sort_and_combine_suggestions
@@ -67,7 +65,6 @@ class CompleteMe
         @@suggestions << node_word
       end
     end
-
     children.each_value do |value|
       value.add_words_to_sugg
     end
