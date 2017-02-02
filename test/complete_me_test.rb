@@ -1,7 +1,11 @@
+require 'simplecov'
+SimpleCov.start
+
 require "minitest"
-require "minitest/emoji"
 require "minitest/autorun"
-require "../complete_me/lib/complete_me"
+require "minitest/pride"
+require "./lib/complete_me.rb"
+
 
 class CompleteMeTest < Minitest::Test
   attr_reader :cm
@@ -56,8 +60,30 @@ class CompleteMeTest < Minitest::Test
   def test_works_with_large_dataset
     cm.populate(large_word_list)
     assert_equal ["doggerel", "doggereler", "doggerelism", "doggerelist", "doggerelize", "doggerelizer"], cm.suggest("doggerel").sort
+
     cm.select("doggerel", "doggerelist")
     assert_equal "doggerelist", cm.suggest("doggerel").first
+  end
+
+  def test_substring_specific_selection
+    cm.populate(large_word_list)
+
+    cm.select("piz", "pizzeria")
+    cm.select("piz", "pizzeria")
+    cm.select("piz", "pizzeria")
+
+    cm.select("pi", "pizza")
+    cm.select("pi", "pizza")
+    cm.select("pi", "pizzicato")
+
+    assert_equal "pizzeria", cm.suggest("piz")[0]
+    assert_equal ["pizza", "pizzicato"], cm.suggest("pi")[0..1]
+  end
+
+  def test_no_word_with_substring
+    cm.populate(medium_word_list)
+
+    assert_equal 'No word in this dictionary starts with the given subscript.', cm.suggest("xyz")
   end
 
   def insert_words(words)
@@ -71,4 +97,6 @@ class CompleteMeTest < Minitest::Test
   def large_word_list
     File.read("/usr/share/dict/words")
   end
+
+
 end
