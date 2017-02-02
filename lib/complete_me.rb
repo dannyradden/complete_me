@@ -1,16 +1,14 @@
 require 'pry'
 class CompleteMe
 
-  attr_reader :root_node
-  attr_accessor :counter, :suggestions
-
+  attr_reader :root_node, :counter
+  
   def initialize
-    @@root_node = Node.new('')
+    @root_node = Node.new('')
     @counter = 0
-    @@suggestions = []
   end
 
-  def insert(word, node = @@root_node)
+  def insert(word, node = root_node)
     if word.length != 0
       first_letter = word[0]
       remainder = word[1..-1]
@@ -24,12 +22,12 @@ class CompleteMe
     end
   end
 
-  def count(node = @@root_node)
+  def count(node = root_node)
     node.children.each_value do |value|
       @counter += 1 if value.terminate == true && value != nil
       count(value)
     end
-    @counter
+    counter
   end
 
   def insert_words words
@@ -42,11 +40,10 @@ class CompleteMe
     insert_words(file_contents.split("\n"))
   end
 
-  def suggest(subscript, node = @@root_node, apply_sub = true)
+  def suggest(subscript, node = root_node, apply_sub = true)
     @@sugg_subscript = subscript if apply_sub == true
     @@weighted_suggestions = []
     @@suggestions = []
-
     if subscript.length != 0
       first_letter = subscript[0]
       remainder = subscript[1..-1]
@@ -55,42 +52,39 @@ class CompleteMe
       else
         node.children[first_letter].suggest(remainder, node.children[first_letter], false)
       end
+
     else
-      if node.terminate == true
-        if node.weight[@@sugg_subscript] != nil
-          @@weighted_suggestions << node.weight[@@sugg_subscript].to_s + node.node_word
-        else
-          @@suggestions << node.node_word
-        end
-      end
       add_words_to_sugg
-      #binding.pry
-      @@suggestions.sort!
-      @@weighted_suggestions.sort_by! do |element|
-        element.delete("^0-9","^-").to_i
-        #element
-      end
-      @@weighted_suggestions.map! { |element| element.delete("^a-z")}
-      @@weighted_suggestions += @@suggestions
+      sort_and_combine_suggestions
     end
   end
 
   def add_words_to_sugg
-    children.each_value do |value|
-      if value.terminate == true && value != nil
-        if value.weight[@@sugg_subscript] != nil
-          @@weighted_suggestions << value.weight[@@sugg_subscript].to_s + value.node_word
-        else
-          @@suggestions << value.node_word
-        end
+    if terminate == true
+      if weight[@@sugg_subscript] != nil
+        @@weighted_suggestions << weight[@@sugg_subscript].to_s + node_word
+      else
+        @@suggestions << node_word
       end
+    end
+
+    children.each_value do |value|
       value.add_words_to_sugg
     end
   end
 
+  def sort_and_combine_suggestions
+    @@suggestions.sort!
+    @@weighted_suggestions.sort_by! do |element|
+      element.delete("^0-9","^-").to_i
+    end
+    @@weighted_suggestions.map! { |element| element.delete("^a-z")}
+    @@weighted_suggestions += @@suggestions
+  end
+
 
   def select(substring, word)
-    compile_string = "@@root_node"
+    compile_string = "root_node"
     word.each_char do |letter|
       compile_string += '.children["' + letter + '"]'
     end
@@ -100,7 +94,6 @@ class CompleteMe
     else
       eval(evaluate_string + "-= 1")
     end
-    suggest(substring)
   end
 end
 
@@ -116,7 +109,7 @@ class Node < CompleteMe
   end
 end
 
-# cm = CompleteMe.new
+#cm = CompleteMe.new
 # cm.insert_words(["pizza", "pizzeria", "pizzicato", "pizzle", "pize"])
 # cm.insert_words ['heck', 'hello', 'h', 'had', 'happy', 'happen', 'happe']
 #cm.populate(File.read("./lib/medium.txt"))
@@ -131,18 +124,13 @@ end
 # cm.select("pi", "pizza")
 # cm.select("pi", "pizza")
 # cm.select("pi", "pizzicato")
-# #
+
 # puts cm.suggest("piz")
 # puts ""
 # puts cm.suggest("pi")
-# cm.select('an', "antiemetic")
-# cm.select('an', "anomalous")
-# cm.select('an', "anorectal")
-# cm.select('an', "antiemetic")
+# puts cm.suggest('ba')
 
-#puts cm.suggest('ba')
-
-#binding.pry
+# binding.pry
 # puts ""
 
 # puts "\n"
